@@ -8,100 +8,55 @@
 
 package org.telegram.ui;
 
-import static androidx.core.view.ViewCompat.TYPE_TOUCH;
 import static org.telegram.messenger.AndroidUtilities.dp;
 import static org.telegram.messenger.AndroidUtilities.lerp;
-import static org.telegram.messenger.ContactsController.PRIVACY_RULES_TYPE_ADDED_BY_PHONE;
 import static org.telegram.messenger.LocaleController.formatPluralString;
 import static org.telegram.messenger.LocaleController.formatString;
 import static org.telegram.messenger.LocaleController.getString;
-import static org.telegram.ui.Stars.StarsIntroActivity.formatStarsAmountShort;
-import static org.telegram.ui.bots.AffiliateProgramFragment.percents;
 
-import android.Manifest;
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.animation.AnimatorSet;
 import android.animation.ObjectAnimator;
-import android.animation.StateListAnimator;
 import android.animation.ValueAnimator;
-import android.annotation.SuppressLint;
-import android.app.Activity;
-import android.app.ActivityManager;
-import android.app.Dialog;
-import android.content.ActivityNotFoundException;
 import android.content.Context;
-import android.content.DialogInterface;
-import android.content.Intent;
 import android.content.SharedPreferences;
-import android.content.pm.ConfigurationInfo;
-import android.content.pm.PackageInfo;
-import android.content.pm.PackageManager;
-import android.content.res.Configuration;
-import android.database.DataSetObserver;
-import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.ColorFilter;
 import android.graphics.LinearGradient;
-import android.graphics.Outline;
 import android.graphics.Paint;
-import android.graphics.Path;
 import android.graphics.PixelFormat;
-import android.graphics.Point;
 import android.graphics.PorterDuff;
 import android.graphics.PorterDuffColorFilter;
 import android.graphics.Rect;
 import android.graphics.RectF;
 import android.graphics.Shader;
-import android.graphics.Typeface;
-import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.GradientDrawable;
-import android.media.MediaCodecInfo;
-import android.media.MediaCodecList;
-import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
-import android.os.Looper;
 import android.os.SystemClock;
 import android.text.SpannableString;
 import android.text.SpannableStringBuilder;
 import android.text.Spanned;
-import android.text.TextPaint;
 import android.text.TextUtils;
 import android.text.style.CharacterStyle;
-import android.text.style.ClickableSpan;
-import android.text.style.ForegroundColorSpan;
-import android.text.style.URLSpan;
-import android.text.util.Linkify;
 import android.util.Property;
-import android.util.SparseArray;
 import android.util.SparseIntArray;
 import android.util.TypedValue;
-import android.view.Display;
 import android.view.Gravity;
-import android.view.HapticFeedbackConstants;
 import android.view.MotionEvent;
 import android.view.VelocityTracker;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.ViewOutlineProvider;
-import android.view.ViewTreeObserver;
 import android.view.accessibility.AccessibilityNodeInfo;
-import android.view.animation.AccelerateDecelerateInterpolator;
 import android.view.animation.AccelerateInterpolator;
 import android.view.animation.DecelerateInterpolator;
-import android.webkit.CookieManager;
-import android.webkit.WebStorage;
-import android.webkit.WebView;
-import android.widget.EditText;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
-import android.widget.LinearLayout;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.annotation.Keep;
 import androidx.annotation.NonNull;
@@ -124,96 +79,47 @@ import androidx.viewpager.widget.PagerAdapter;
 import androidx.viewpager.widget.ViewPager;
 
 import org.telegram.PhoneFormat.PhoneFormat;
-import org.telegram.messenger.AccountInstance;
 import org.telegram.messenger.AndroidUtilities;
-import org.telegram.messenger.ApplicationLoader;
-import org.telegram.messenger.AuthTokensHelper;
-import org.telegram.messenger.BillingController;
-import org.telegram.messenger.BirthdayController;
-import org.telegram.messenger.BuildVars;
 import org.telegram.messenger.ChatObject;
-import org.telegram.messenger.ChatThemeController;
 import org.telegram.messenger.ContactsController;
 import org.telegram.messenger.DialogObject;
 import org.telegram.messenger.DocumentObject;
 import org.telegram.messenger.Emoji;
 import org.telegram.messenger.FileLoader;
 import org.telegram.messenger.FileLog;
-import org.telegram.messenger.FlagSecureReason;
 import org.telegram.messenger.ImageLoader;
 import org.telegram.messenger.ImageLocation;
 import org.telegram.messenger.ImageReceiver;
-import org.telegram.messenger.LanguageDetector;
-import org.telegram.messenger.LiteMode;
 import org.telegram.messenger.LocaleController;
-import org.telegram.messenger.MediaController;
-import org.telegram.messenger.MediaDataController;
 import org.telegram.messenger.MessageObject;
 import org.telegram.messenger.MessagesController;
-import org.telegram.messenger.MessagesStorage;
-import org.telegram.messenger.NotificationCenter;
-import org.telegram.messenger.NotificationsController;
 import org.telegram.messenger.R;
-import org.telegram.messenger.SendMessagesHelper;
 import org.telegram.messenger.SharedConfig;
 import org.telegram.messenger.SvgHelper;
 import org.telegram.messenger.UserConfig;
 import org.telegram.messenger.UserObject;
-import org.telegram.messenger.Utilities;
 import org.telegram.messenger.browser.Browser;
 import org.telegram.tgnet.ConnectionsManager;
-import org.telegram.tgnet.SerializedData;
-import org.telegram.tgnet.TLObject;
 import org.telegram.tgnet.TLRPC;
-import org.telegram.tgnet.tl.TL_account;
-import org.telegram.tgnet.tl.TL_bots;
-import org.telegram.tgnet.tl.TL_fragment;
-import org.telegram.tgnet.tl.TL_stars;
-import org.telegram.tgnet.tl.TL_stories;
 import org.telegram.ui.ActionBar.ActionBar;
-import org.telegram.ui.ActionBar.ActionBarMenu;
-import org.telegram.ui.ActionBar.ActionBarMenuItem;
-import org.telegram.ui.ActionBar.ActionBarMenuSubItem;
-import org.telegram.ui.ActionBar.ActionBarPopupWindow;
-import org.telegram.ui.ActionBar.AlertDialog;
-import org.telegram.ui.ActionBar.BackDrawable;
 import org.telegram.ui.ActionBar.BaseFragment;
-import org.telegram.ui.ActionBar.INavigationLayout;
 import org.telegram.ui.ActionBar.OKLCH;
 import org.telegram.ui.ActionBar.SimpleTextView;
 import org.telegram.ui.ActionBar.Theme;
-import org.telegram.ui.ActionBar.ThemeDescription;
-import org.telegram.ui.Business.OpeningHoursActivity;
-import org.telegram.ui.Business.ProfileHoursCell;
-import org.telegram.ui.Business.ProfileLocationCell;
 import org.telegram.ui.Cells.AboutLinkCell;
-import org.telegram.ui.Cells.CheckBoxCell;
-import org.telegram.ui.Cells.DividerCell;
 import org.telegram.ui.Cells.DrawerProfileCell;
-import org.telegram.ui.Cells.GraySectionCell;
 import org.telegram.ui.Cells.HeaderCell;
-import org.telegram.ui.Cells.NotificationsCheckCell;
 import org.telegram.ui.Cells.ProfileChannelCell;
-import org.telegram.ui.Cells.SettingsSearchCell;
-import org.telegram.ui.Cells.SettingsSuggestionCell;
-import org.telegram.ui.Cells.ShadowSectionCell;
 import org.telegram.ui.Cells.TextCell;
-import org.telegram.ui.Cells.TextCheckCell;
 import org.telegram.ui.Cells.TextDetailCell;
-import org.telegram.ui.Cells.TextInfoPrivacyCell;
-import org.telegram.ui.Cells.UserCell;
-import org.telegram.ui.Components.AlertsCreator;
 import org.telegram.ui.Components.AnimatedColor;
 import org.telegram.ui.Components.AnimatedEmojiDrawable;
-import org.telegram.ui.Components.AnimatedEmojiSpan;
 import org.telegram.ui.Components.AnimatedFileDrawable;
 import org.telegram.ui.Components.AnimatedFloat;
 import org.telegram.ui.Components.AnimatedTextView;
 import org.telegram.ui.Components.AnimationProperties;
 import org.telegram.ui.Components.AudioPlayerAlert;
-import org.telegram.ui.Components.AutoDeletePopupWrapper;
 import org.telegram.ui.Components.AvatarDrawable;
-import org.telegram.ui.Components.BackButtonMenu;
 import org.telegram.ui.Components.BackupImageView;
 import org.telegram.ui.Components.Bulletin;
 import org.telegram.ui.Components.BulletinFactory;
@@ -221,7 +127,6 @@ import org.telegram.ui.Components.ButtonBounce;
 import org.telegram.ui.Components.CanvasButton;
 import org.telegram.ui.Components.ChatActivityInterface;
 import org.telegram.ui.Components.ChatAvatarContainer;
-import org.telegram.ui.Components.ChatNotificationsPopupWrapper;
 import org.telegram.ui.Components.ColoredImageSpan;
 import org.telegram.ui.Components.CombinedDrawable;
 import org.telegram.ui.Components.CrossfadeDrawable;
@@ -229,91 +134,37 @@ import org.telegram.ui.Components.CubicBezierInterpolator;
 import org.telegram.ui.Components.DotDividerSpan;
 import org.telegram.ui.Components.EmojiPacksAlert;
 import org.telegram.ui.Components.EmptyStubSpan;
-import org.telegram.ui.Components.FloatingDebug.FloatingDebugController;
 import org.telegram.ui.Components.Forum.ForumUtilities;
 import org.telegram.ui.Components.FragmentContextView;
 import org.telegram.ui.Components.HintView;
-import org.telegram.ui.Components.IdenticonDrawable;
 import org.telegram.ui.Components.ImageUpdater;
-import org.telegram.ui.Components.InstantCameraView;
-import org.telegram.ui.Components.ItemOptions;
-import org.telegram.ui.Components.JoinGroupAlert;
 import org.telegram.ui.Components.LayoutHelper;
 import org.telegram.ui.Components.LinkSpanDrawable;
-import org.telegram.ui.Components.MediaActivity;
 import org.telegram.ui.Components.MessagePrivateSeenView;
-import org.telegram.ui.Components.Paint.PersistColorPalette;
-import org.telegram.ui.Components.Premium.LimitReachedBottomSheet;
-import org.telegram.ui.Components.Premium.PremiumFeatureBottomSheet;
-import org.telegram.ui.Components.Premium.PremiumGradient;
 import org.telegram.ui.Components.Premium.PremiumPreviewBottomSheet;
-import org.telegram.ui.Components.Premium.ProfilePremiumCell;
-import org.telegram.ui.Components.Premium.boosts.UserSelectorBottomSheet;
 import org.telegram.ui.Components.ProfileGalleryView;
 import org.telegram.ui.Components.RLottieDrawable;
 import org.telegram.ui.Components.RLottieImageView;
 import org.telegram.ui.Components.RadialProgressView;
-import org.telegram.ui.Components.Reactions.ReactionsLayoutInBubble;
 import org.telegram.ui.Components.RecyclerListView;
-import org.telegram.ui.Components.ScamDrawable;
-import org.telegram.ui.Components.ShareAlert;
 import org.telegram.ui.Components.SharedMediaLayout;
 import org.telegram.ui.Components.SizeNotifierFrameLayout;
-import org.telegram.ui.Components.StickerEmptyView;
 import org.telegram.ui.Components.TimerDrawable;
-import org.telegram.ui.Components.TranslateAlert2;
-import org.telegram.ui.Components.TypefaceSpan;
 import org.telegram.ui.Components.UndoView;
 import org.telegram.ui.Components.VectorAvatarThumbDrawable;
-import org.telegram.ui.Components.voip.VoIPHelper;
-import org.telegram.ui.Gifts.GiftSheet;
-import org.telegram.ui.Stars.BotStarsActivity;
-import org.telegram.ui.Stars.BotStarsController;
 import org.telegram.ui.Stars.ProfileGiftsView;
 import org.telegram.ui.Stars.StarGiftPatterns;
-import org.telegram.ui.Stars.StarGiftSheet;
-import org.telegram.ui.Stars.StarsController;
 import org.telegram.ui.Stars.StarsIntroActivity;
-import org.telegram.ui.Stories.ProfileStoriesView;
-import org.telegram.ui.Stories.StoriesController;
 import org.telegram.ui.Stories.StoriesListPlaceProvider;
-import org.telegram.ui.Stories.StoryViewer;
 import org.telegram.ui.Stories.recorder.ButtonWithCounterView;
-import org.telegram.ui.Stories.recorder.DualCameraView;
-import org.telegram.ui.Stories.recorder.HintView2;
-import org.telegram.ui.Stories.recorder.StoryRecorder;
 import org.telegram.ui.bots.AffiliateProgramFragment;
-import org.telegram.ui.bots.BotBiometry;
-import org.telegram.ui.bots.BotDownloads;
-import org.telegram.ui.bots.BotLocation;
-import org.telegram.ui.bots.BotWebViewAttachedSheet;
-import org.telegram.ui.bots.ChannelAffiliateProgramsFragment;
-import org.telegram.ui.bots.SetupEmojiStatusSheet;
 
-import java.io.BufferedInputStream;
-import java.io.BufferedOutputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.text.DecimalFormat;
-import java.text.DecimalFormatSymbols;
-import java.time.LocalDate;
-import java.time.Period;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.Date;
 import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Locale;
-import java.util.Set;
 import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.atomic.AtomicReference;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipOutputStream;
 
 public class ProfileActivity extends BaseFragment implements ImageUpdater.ImageUpdaterDelegate, SharedMediaLayout.Delegate {
     private RecyclerListView listView;
@@ -324,10 +175,8 @@ public class ProfileActivity extends BaseFragment implements ImageUpdater.ImageU
     private String nameTextViewRightDrawableContentDescription = null;
     private String nameTextViewRightDrawable2ContentDescription = null;
     private SimpleTextView[] onlineTextView = new SimpleTextView[4];
-    private AudioPlayerAlert.ClippingTextViewSwitcher mediaCounterTextView;
     private RLottieImageView writeButton;
     private AnimatorSet writeButtonAnimation;
-    private AnimatorSet qrItemAnimation;
     private Drawable lockIconDrawable;
     private final Drawable[] verifiedDrawable = new Drawable[2];
     private final Drawable[] premiumStarDrawable = new Drawable[2];
@@ -375,7 +224,6 @@ public class ProfileActivity extends BaseFragment implements ImageUpdater.ImageU
 
     private boolean[] isOnline = new boolean[1];
 
-    private boolean callItemVisible;
     private ImageView ttlIconView;
     private int actionBarBackgroundColor;
     private TopView topView;
@@ -384,15 +232,12 @@ public class ProfileActivity extends BaseFragment implements ImageUpdater.ImageU
     private long topicId;
     public boolean saved;
     private long dialogId;
-    private boolean creatingChat;
     private boolean expandPhoto;
-    private boolean needSendMessage;
     private boolean isTopic;
     private boolean openSimilar;
     public boolean myProfile;
     public boolean openGifts;
     private boolean openedGifts;
-    public boolean openCommonChats;
 
     private LongSparseArray<TLRPC.ChatParticipant> participantsMap = new LongSparseArray<>();
 
@@ -481,15 +326,11 @@ public class ProfileActivity extends BaseFragment implements ImageUpdater.ImageU
     private boolean firstLayout = true;
     private boolean invalidateScroll = true;
 
-    PinchToZoomHelper pinchToZoomHelper;
-
     private View transitionOnlineText;
     private int actionBarAnimationColorFrom = 0;
     private int navigationBarAnimationColorFrom = 0;
     private int reportReactionMessageId = 0;
     private long reportReactionFromDialogId = 0;
-
-    private boolean isFragmentPhoneNumber;
 
     private boolean showAddToContacts;
 
@@ -505,8 +346,6 @@ public class ProfileActivity extends BaseFragment implements ImageUpdater.ImageU
     private boolean hasFallbackPhoto;
     private boolean hasCustomPhoto;
     private ImageReceiver fallbackImage;
-    private boolean loadingBoostsStats;
-    private boolean waitCanSendStoryRequest;
     private FrameLayout bottomButtonsContainer;
     private FrameLayout[] bottomButtonContainer;
     private SpannableStringBuilder bottomButtonPostText;
@@ -876,17 +715,6 @@ public class ProfileActivity extends BaseFragment implements ImageUpdater.ImageU
                         canvas.restore();
                     }
                 }
-                if (previousTransitionFragment != null) {
-                    ActionBar actionBar = previousTransitionFragment.getActionBar();
-                    ActionBarMenu menu = actionBar.menu;
-                    if (actionBar != null && menu != null) {
-                        int restoreCount = canvas.save();
-                        canvas.translate(actionBar.getX() + menu.getX(), actionBar.getY() + menu.getY());
-                        canvas.saveLayerAlpha(0, 0, menu.getMeasuredWidth(), menu.getMeasuredHeight(), (int) (255 * (1f - avatarAnimationProgress)), Canvas.ALL_SAVE_FLAG);
-                        menu.draw(canvas);
-                        canvas.restoreToCount(restoreCount);
-                    }
-                }
             }
             if (y1 != v) {
                 int color = getThemedColor(Theme.key_windowBackgroundWhite);
@@ -1033,7 +861,7 @@ public class ProfileActivity extends BaseFragment implements ImageUpdater.ImageU
 
         @Override
         protected void onSizeChanged(int w, int h, int oldw, int oldh) {
-            final int actionBarHeight = statusBarHeight + ActionBar.getCurrentActionBarHeight();
+            final int actionBarHeight = 0;
             final float k = 0.5f;
             topOverlayRect.set(0, 0, w, (int) (actionBarHeight * k));
             bottomOverlayRect.set(0, (int) (h - AndroidUtilities.dp(72f) * k), w, h);
@@ -1292,12 +1120,10 @@ public class ProfileActivity extends BaseFragment implements ImageUpdater.ImageU
         showAddToContacts = arguments.getBoolean("show_add_to_contacts", true);
         myProfile = arguments.getBoolean("my_profile", false);
         openGifts = arguments.getBoolean("open_gifts", false);
-        openCommonChats = arguments.getBoolean("open_common", false);
         if (!expandPhoto) {
             expandPhoto = arguments.getBoolean("expandPhoto", false);
             if (expandPhoto) {
                 currentExpandAnimatorValue = 1f;
-                needSendMessage = true;
             }
         }
         if (userId != 0) {
@@ -1395,7 +1221,8 @@ public class ProfileActivity extends BaseFragment implements ImageUpdater.ImageU
         if (userId != 0 && UserObject.isUserSelf(getMessagesController().getUser(userId)) && !myProfile) {
             getMessagesController().getContentSettings(null);
         }
-
+        // Hide the ActionBar at runtime
+        actionBar.hide();
         return true;
     }
 
@@ -1420,9 +1247,6 @@ public class ProfileActivity extends BaseFragment implements ImageUpdater.ImageU
         if (imageUpdater != null) {
             imageUpdater.clear();
         }
-        if (pinchToZoomHelper != null) {
-            pinchToZoomHelper.clear();
-        }
         if (birthdayFetcher != null && createdBirthdayFetcher) {
             birthdayFetcher.detach(true);
             birthdayFetcher = null;
@@ -1438,7 +1262,6 @@ public class ProfileActivity extends BaseFragment implements ImageUpdater.ImageU
     @Override
     public View createView(Context context) {
         Theme.createProfileResources(context);
-        Theme.createChatResources(context, false);
         BaseFragment lastFragment = parentLayout.getLastFragment();
         if (lastFragment instanceof ChatActivity && ((ChatActivity) lastFragment).themeDelegate != null && ((ChatActivity) lastFragment).themeDelegate.getCurrentTheme() != null) {
             resourcesProvider = lastFragment.getResourceProvider();
@@ -1446,22 +1269,10 @@ public class ProfileActivity extends BaseFragment implements ImageUpdater.ImageU
         searchTransitionOffset = 0;
         extraHeight = AndroidUtilities.dp(88f);
 
-        final long did;
-        if (dialogId != 0) {
-            did = dialogId;
-        } else if (userId != 0) {
-            did = userId;
-        } else {
-            did = -chatId;
-        }
-
         fragmentView = new NestedFrameLayout(context) {
 
             @Override
             public boolean dispatchTouchEvent(MotionEvent ev) {
-                if (pinchToZoomHelper.isInOverlayMode()) {
-                    return pinchToZoomHelper.onTouchEvent(ev);
-                }
                 return super.dispatchTouchEvent(ev);
             }
 
@@ -1477,7 +1288,7 @@ public class ProfileActivity extends BaseFragment implements ImageUpdater.ImageU
 
             @Override
             protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
-                final int actionBarHeight = ActionBar.getCurrentActionBarHeight() + (actionBar.getOccupyStatusBar() ? AndroidUtilities.statusBarHeight : 0);
+                final int actionBarHeight = 0;
                 if (listView != null) {
                     LayoutParams layoutParams = (LayoutParams) listView.getLayoutParams();
                     if (layoutParams.topMargin != actionBarHeight) {
@@ -1539,8 +1350,6 @@ public class ProfileActivity extends BaseFragment implements ImageUpdater.ImageU
                         }
                         updateEmojiStatusDrawableColor(1f);
                         onlineTextView[1].setTextColor(0xB3FFFFFF);
-                        actionBar.setItemsBackgroundColor(Theme.ACTION_BAR_WHITE_SELECTOR_COLOR, false);
-                        actionBar.setItemsColor(Color.WHITE, false);
                         overlaysView.setOverlaysVisible();
                         overlaysView.setAlphaValue(1.0f, false);
                         avatarImage.setForegroundAlpha(1.0f);
@@ -1799,9 +1608,6 @@ public class ProfileActivity extends BaseFragment implements ImageUpdater.ImageU
 
             @Override
             protected boolean drawChild(Canvas canvas, View child, long drawingTime) {
-                if (pinchToZoomHelper.isInOverlayMode() && (child == avatarContainer2 || child == actionBar || child == writeButton)) {
-                    return true;
-                }
                 if (child == blurredView) {
                     return true;
                 }
@@ -1859,39 +1665,6 @@ public class ProfileActivity extends BaseFragment implements ImageUpdater.ImageU
                     bottomButtonContainer[a].setTranslationY(dp(72));
                 }
             }
-        }
-
-        final ArrayList<Integer> users = chatInfo != null && chatInfo.participants != null && chatInfo.participants.participants.size() > 5 ? sortedUsers : null;
-        int initialTab = -1;
-        if (openCommonChats) {
-            initialTab = SharedMediaLayout.TAB_COMMON_GROUPS;
-        } else if (openGifts && (userInfo != null && userInfo.stargifts_count > 0 || chatInfo != null && chatInfo.stargifts_count > 0)) {
-            initialTab = SharedMediaLayout.TAB_GIFTS;
-            openedGifts = true;
-        } else if (openSimilar) {
-            initialTab = SharedMediaLayout.TAB_RECOMMENDED_CHANNELS;
-        } else if (users != null) {
-            initialTab = SharedMediaLayout.TAB_GROUPUSERS;
-        }
-        ttlIconView = new ImageView(context);
-        ttlIconView.setColorFilter(new PorterDuffColorFilter(getThemedColor(Theme.key_actionBarDefaultIcon), PorterDuff.Mode.MULTIPLY));
-        AndroidUtilities.updateViewVisibilityAnimated(ttlIconView, false, 0.8f, false);
-        ttlIconView.setImageResource(R.drawable.msg_mini_autodelete_timer);
-
-        int scrollTo;
-        int scrollToPosition = 0;
-        Object writeButtonTag = null;
-        if (listView != null && imageUpdater != null) {
-            scrollTo = layoutManager.findFirstVisibleItemPosition();
-            View topView = layoutManager.findViewByPosition(scrollTo);
-            if (topView != null) {
-                scrollToPosition = topView.getTop() - listView.getPaddingTop();
-            } else {
-                scrollTo = -1;
-            }
-            writeButtonTag = writeButton.getTag();
-        } else {
-            scrollTo = -1;
         }
 
         listAdapter = new ListAdapter(context);
@@ -1968,7 +1741,7 @@ public class ProfileActivity extends BaseFragment implements ImageUpdater.ImageU
                         final View view = layoutManager.findViewByPosition(0);
                         if (view != null) {
                             if (isPulledDown) {
-                                final int actionBarHeight = ActionBar.getCurrentActionBarHeight() + (actionBar.getOccupyStatusBar() ? AndroidUtilities.statusBarHeight : 0);
+                                final int actionBarHeight = 0;
                                 listView.smoothScrollBy(0, view.getTop() - listView.getMeasuredWidth() + actionBarHeight, CubicBezierInterpolator.EASE_OUT_QUINT);
                             } else {
                                 listView.smoothScrollBy(0, view.getTop() - AndroidUtilities.dp(88), CubicBezierInterpolator.EASE_OUT_QUINT);
@@ -2114,7 +1887,6 @@ public class ProfileActivity extends BaseFragment implements ImageUpdater.ImageU
         if (openSimilar) {
             updateRowsIds();
             scrollToSharedMedia();
-            savedScrollToSharedMedia = true;
             savedScrollPosition = sharedMediaRow;
             savedScrollOffset = 0;
         }
@@ -2359,9 +2131,9 @@ public class ProfileActivity extends BaseFragment implements ImageUpdater.ImageU
         avatarContainer2.addView(overlaysView);
         avatarImage.setAvatarsViewPager(avatarsViewPager);
 
-        frameLayout.addView(actionBar);
+        actionBar.setVisibility(View.GONE);
 
-        float rightMargin = (54 + ((callItemVisible && userId != 0) ? 54 : 0));
+        float rightMargin = (54 + ((userId != 0) ? 54 : 0));
         boolean hasTitleExpanded = false;
         int initialTitleWidth = LayoutHelper.WRAP_CONTENT;
         if (parentLayout != null && parentLayout.getLastFragment() instanceof ChatActivity) {
@@ -2486,29 +2258,11 @@ public class ProfileActivity extends BaseFragment implements ImageUpdater.ImageU
         // checkPhotoDescriptionAlpha();
         avatarContainer2.addView(animatedStatusView);
 
-        mediaCounterTextView = new AudioPlayerAlert.ClippingTextViewSwitcher(context) {
-            @Override
-            protected TextView createTextView() {
-                TextView textView = new TextView(context);
-                textView.setTextColor(getThemedColor(Theme.key_player_actionBarSubtitle));
-                textView.setTextSize(TypedValue.COMPLEX_UNIT_PX, AndroidUtilities.dp(14));
-                textView.setSingleLine(true);
-                textView.setEllipsize(TextUtils.TruncateAt.END);
-                textView.setGravity(Gravity.LEFT);
-                return textView;
-            }
-        };
-        mediaCounterTextView.setAlpha(0.0f);
-        avatarContainer2.addView(mediaCounterTextView, LayoutHelper.createFrame(LayoutHelper.WRAP_CONTENT, LayoutHelper.WRAP_CONTENT, Gravity.LEFT | Gravity.TOP, 118.33f, -2, 8, 0));
-        if (avatarImage != null) {
-            avatarImage.setHasStories(needInsetForStories());
-        }
         giftsView = new ProfileGiftsView(context, currentAccount, getDialogId(), avatarContainer, avatarImage, resourcesProvider);
         avatarContainer2.addView(giftsView, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.MATCH_PARENT));
         updateProfileData(true);
 
         writeButton = new RLottieImageView(context);
-        writeButtonSetBackground();
         if (userId != 0) {
             if (imageUpdater != null) {
                 cameraDrawable = new RLottieDrawable(R.raw.camera_outline, String.valueOf(R.raw.camera_outline), AndroidUtilities.dp(56), AndroidUtilities.dp(56), false, null);
@@ -2535,15 +2289,6 @@ public class ProfileActivity extends BaseFragment implements ImageUpdater.ImageU
             // onWriteButtonClick();
         });
         needLayout(false);
-
-        if (scrollTo != -1) {
-            if (writeButtonTag != null) {
-                writeButton.setTag(0);
-                writeButton.setScaleX(0.2f);
-                writeButton.setScaleY(0.2f);
-                writeButton.setAlpha(0.0f);
-            }
-        }
 
         listView.setOnScrollListener(new RecyclerView.OnScrollListener() {
 
@@ -2601,70 +2346,6 @@ public class ProfileActivity extends BaseFragment implements ImageUpdater.ImageU
         } else {
             decorView = frameLayout;
         }
-        pinchToZoomHelper = new PinchToZoomHelper(decorView, frameLayout) {
-
-            Paint statusBarPaint;
-
-            @Override
-            protected void invalidateViews() {
-                super.invalidateViews();
-                fragmentView.invalidate();
-                for (int i = 0; i < avatarsViewPager.getChildCount(); i++) {
-                    avatarsViewPager.getChildAt(i).invalidate();
-                }
-                if (writeButton != null) {
-                    writeButton.invalidate();
-                }
-            }
-
-            @Override
-            protected void drawOverlays(Canvas canvas, float alpha, float parentOffsetX, float parentOffsetY, float clipTop, float clipBottom) {
-                if (alpha > 0) {
-                    AndroidUtilities.rectTmp.set(0, 0, avatarsViewPager.getMeasuredWidth(), avatarsViewPager.getMeasuredHeight() + AndroidUtilities.dp(30));
-                    canvas.saveLayerAlpha(AndroidUtilities.rectTmp, (int) (255 * alpha), Canvas.ALL_SAVE_FLAG);
-
-                    avatarContainer2.draw(canvas);
-
-                    if (actionBar.getOccupyStatusBar() && !SharedConfig.noStatusBar) {
-                        if (statusBarPaint == null) {
-                            statusBarPaint = new Paint();
-                            statusBarPaint.setColor(ColorUtils.setAlphaComponent(Color.BLACK, (int) (255 * 0.2f)));
-                        }
-                        canvas.drawRect(actionBar.getX(), actionBar.getY(), actionBar.getX() + actionBar.getMeasuredWidth(), actionBar.getY() + AndroidUtilities.statusBarHeight, statusBarPaint);
-                    }
-                    canvas.save();
-                    canvas.translate(actionBar.getX(), actionBar.getY());
-                    actionBar.draw(canvas);
-                    canvas.restore();
-
-                    if (writeButton != null && writeButton.getVisibility() == View.VISIBLE && writeButton.getAlpha() > 0) {
-                        canvas.save();
-                        float s = 0.5f + 0.5f * alpha;
-                        canvas.scale(s, s, writeButton.getX() + writeButton.getMeasuredWidth() / 2f, writeButton.getY() + writeButton.getMeasuredHeight() / 2f);
-                        canvas.translate(writeButton.getX(), writeButton.getY());
-                        writeButton.draw(canvas);
-                        canvas.restore();
-                    }
-                    canvas.restore();
-                }
-            }
-
-            @Override
-            protected boolean zoomEnabled(View child, ImageReceiver receiver) {
-                if (!super.zoomEnabled(child, receiver)) {
-                    return false;
-                }
-                return listView.getScrollState() != RecyclerView.SCROLL_STATE_DRAGGING;
-            }
-        };
-        pinchToZoomHelper.setCallback(new PinchToZoomHelper.Callback() {
-            @Override
-            public void onZoomStarted(MessageObject messageObject) {
-                listView.cancelClickRunnables(true);
-                topView.setBackgroundColor(ColorUtils.blendARGB(getAverageColor(pinchToZoomHelper.getPhotoImage()), getThemedColor(Theme.key_windowBackgroundWhite), 0.1f));
-            }
-        });
-        avatarsViewPager.setPinchToZoomHelper(pinchToZoomHelper);
 
         blurredView = new View(context) {
             @Override
@@ -2687,13 +2368,11 @@ public class ProfileActivity extends BaseFragment implements ImageUpdater.ImageU
         blurredView.setFitsSystemWindows(true);
         contentView.addView(blurredView, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.MATCH_PARENT));
 
-        createBirthdayEffect();
-
         if (myProfile) {
             contentView.addView(bottomButtonsContainer, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, 72 + (1 / AndroidUtilities.density), Gravity.BOTTOM | Gravity.FILL_HORIZONTAL));
         }
 
-        if (openGifts || openCommonChats) {
+        if (openGifts) {
             AndroidUtilities.runOnUIThread(this::scrollToSharedMedia);
         }
 
@@ -2812,8 +2491,6 @@ public class ProfileActivity extends BaseFragment implements ImageUpdater.ImageU
         nameTextView[1].setTranslationY(nameTextViewY);
         onlineTextView[1].setTranslationX(onlineTextViewX + customPhotoOffset);
         onlineTextView[1].setTranslationY(onlineTextViewY);
-        mediaCounterTextView.setTranslationX(onlineTextViewX);
-        mediaCounterTextView.setTranslationY(onlineTextViewY);
         final Object onlineTextViewTag = onlineTextView[1].getTag();
         int statusColor;
         boolean online = false;
@@ -2983,8 +2660,6 @@ public class ProfileActivity extends BaseFragment implements ImageUpdater.ImageU
                         nameTextView[1].setTranslationY(newTop + h - AndroidUtilities.dpf2(38f) - nameTextView[1].getBottom() + additionalTranslationY);
                         onlineTextView[1].setTranslationX(onlineX + customPhotoOffset);
                         onlineTextView[1].setTranslationY(newTop + h - AndroidUtilities.dpf2(18f) - onlineTextView[1].getBottom() + additionalTranslationY);
-                        mediaCounterTextView.setTranslationX(onlineTextView[1].getTranslationX());
-                        mediaCounterTextView.setTranslationY(onlineTextView[1].getTranslationY());
                         updateCollectibleHint();
                     }
                 } else {
@@ -3032,8 +2707,6 @@ public class ProfileActivity extends BaseFragment implements ImageUpdater.ImageU
                         nameTextView[1].setTranslationY(nameY);
                         onlineTextView[1].setTranslationX(onlineX + customPhotoOffset);
                         onlineTextView[1].setTranslationY(onlineY);
-                        mediaCounterTextView.setTranslationX(onlineX);
-                        mediaCounterTextView.setTranslationY(onlineY);
                         updateCollectibleHint();
                     }
                 }
@@ -3130,10 +2803,6 @@ public class ProfileActivity extends BaseFragment implements ImageUpdater.ImageU
 
                         onlineTextView[a].setTranslationX(onlineX + customPhotoOffset);
                         onlineTextView[a].setTranslationY(onlineY);
-                        if (a == 1) {
-                            mediaCounterTextView.setTranslationX(onlineX);
-                            mediaCounterTextView.setTranslationY(onlineY);
-                        }
                     }
                     nameTextView[a].setScaleX(nameScale);
                     nameTextView[a].setScaleY(nameScale);
@@ -3260,6 +2929,23 @@ public class ProfileActivity extends BaseFragment implements ImageUpdater.ImageU
     private void updateProfileData(boolean reload) {
         if (avatarContainer == null || nameTextView == null || getParentActivity() == null) {
             return;
+        }
+        if (avatarContainer.getLayoutParams() instanceof FrameLayout.LayoutParams) {
+            FrameLayout.LayoutParams lp = (FrameLayout.LayoutParams) avatarContainer.getLayoutParams();
+            lp.gravity = Gravity.TOP | Gravity.CENTER_HORIZONTAL;
+            avatarContainer.setLayoutParams(lp);
+        }
+        for (int i = 0; i < nameTextView.length; i++) {
+            if (nameTextView[i] != null) {
+                nameTextView[i].setGravity(Gravity.CENTER_HORIZONTAL);
+                nameTextView[i].setTranslationX(0); 
+            }
+        }
+        for (int i = 0; i < onlineTextView.length; i++) {
+            if (onlineTextView[i] != null) {
+                onlineTextView[i].setGravity(Gravity.CENTER_HORIZONTAL);
+                onlineTextView[i].setTranslationX(0);
+            }
         }
         String onlineTextOverride;
         int currentConnectionState = getConnectionsManager().getConnectionState();
@@ -3995,7 +3681,7 @@ public class ProfileActivity extends BaseFragment implements ImageUpdater.ImageU
         if (sharedMediaRow == -1) {
             bottomPaddingRow = rowCount++;
         }
-        final int actionBarHeight = actionBar != null ? ActionBar.getCurrentActionBarHeight() + (actionBar.getOccupyStatusBar() ? AndroidUtilities.statusBarHeight : 0) : 0;
+        final int actionBarHeight = 0;
         if (listView == null || prevRowsCount > rowCount || listContentHeight != 0 && listContentHeight + actionBarHeight + AndroidUtilities.dp(88) < listView.getMeasuredHeight()) {
             lastMeasuredContentWidth = 0;
         }
@@ -4160,7 +3846,6 @@ public class ProfileActivity extends BaseFragment implements ImageUpdater.ImageU
 
     int savedScrollPosition = -1;
     int savedScrollOffset;
-    boolean savedScrollToSharedMedia;
 
     public void scrollToSharedMedia() {
         scrollToSharedMedia(false);
@@ -4173,12 +3858,7 @@ public class ProfileActivity extends BaseFragment implements ImageUpdater.ImageU
     @Override
     public void onBecomeFullyVisible() {
         super.onBecomeFullyVisible();
-        writeButtonSetBackground();
         fullyVisible = true;
-        createBirthdayEffect();
-    }
-
-    private void writeButtonSetBackground() {
     }
 
     private boolean isQrNeedVisible() {
@@ -4207,7 +3887,7 @@ public class ProfileActivity extends BaseFragment implements ImageUpdater.ImageU
     public void prepareBlurBitmap() {
     }
 
-        private int getSmallAvatarRoundRadius() {
+    private int getSmallAvatarRoundRadius() {
         if (chatId != 0) {
             TLRPC.Chat chatLocal = getMessagesController().getChat(chatId);
             if (ChatObject.isForum(chatLocal)) {
@@ -4287,9 +3967,7 @@ public class ProfileActivity extends BaseFragment implements ImageUpdater.ImageU
     private boolean mediaHeaderVisible;
 
     private void setMediaHeaderVisible(boolean visible) {
-        
     }
-
 
     private void checkListViewScroll() {
         if (listView.getVisibility() != View.VISIBLE) {
@@ -4370,16 +4048,8 @@ public class ProfileActivity extends BaseFragment implements ImageUpdater.ImageU
 
         private int textColor;
         public void setBackgroundColor(int backgroundColor) {
-            if (backgroundPaint.getColor() != backgroundColor) {
-                backgroundPaint.setColor(backgroundColor);
-                invalidateSelf();
-            }
         }
         public void setTextColor(int textColor) {
-            if (this.textColor != textColor) {
-                this.textColor = textColor;
-                invalidateSelf();
-            }
         }
 
         @Override
@@ -4443,7 +4113,7 @@ public class ProfileActivity extends BaseFragment implements ImageUpdater.ImageU
         }
     }
 
-        private void setForegroundImage(boolean secondParent) {
+    private void setForegroundImage(boolean secondParent) {
     }
 
     private void refreshNameAndOnlineXY() {
@@ -4488,9 +4158,6 @@ public class ProfileActivity extends BaseFragment implements ImageUpdater.ImageU
             return;
         }
         updateListAnimated(false);
-    }
-
-    private void createBirthdayEffect() {
     }
 
     public void updateCollectibleHint() {
